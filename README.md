@@ -1,2 +1,2 @@
 # MySQL
-RDBMS Practice with Assignments
+Practicing Relational Database MySQL with Assignments Que and More
