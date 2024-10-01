@@ -370,3 +370,208 @@ FROM emp;
 -- |          MILLER |           CLERK |
 -- +-----------------+-----------------+
 -- 14 rows in set (0.00 sec)
+
+
+-- display min sal,max sal, average sal for all employees 
+-- working under same manager
+
+SELECT 
+    mgr, 
+    MIN(sal) AS min_sal, 
+    MAX(sal) AS max_sal, 
+    ROUND(AVG(sal)) AS avg_sal
+FROM emp
+WHERE mgr IS NOT NULL
+GROUP BY mgr
+ORDER BY mgr;
+-- +------+---------+---------+---------+
+-- | mgr  | min_sal | max_sal | avg_sal |
+-- +------+---------+---------+---------+
+-- | 7566 | 3000.00 | 3000.00 |    3000 |
+-- | 7698 |  950.00 | 1600.00 |    1310 |
+-- | 7782 | 1300.00 | 1300.00 |    1300 |
+-- | 7788 | 1100.00 | 1100.00 |    1100 |
+-- | 7839 | 2450.00 | 2975.00 |    2758 |
+-- | 7902 |  800.00 |  800.00 |     800 |
+-- +------+---------+---------+---------+
+-- 6 rows in set (0.00 sec)
+
+-- find sum of total earnings(sal+comm), average of sal+comm, for all employees 
+-- who earn sal > 2000 and work in either dept no 10 or 20
+
+SELECT 
+    deptno,
+    ROUND(SUM(sal + IFNULL(comm,0))) AS sum_sal, 
+    ROUND(AVG(sal + IFNULL(comm,0))) AS avg_sal
+FROM emp
+WHERE sal > 2000 
+AND deptno IN (10,20)
+GROUP BY deptno
+ORDER BY deptno;
+-- +--------+---------+---------+
+-- | deptno | sum_sal | avg_sal |
+-- +--------+---------+---------+
+-- |     10 |    7450 |    3725 |
+-- |     20 |    8975 |    2992 |
+-- +--------+---------+---------+
+-- 2 rows in set (0.00 sec)
+
+-- list all employees who joined in Aug 1980 and salary is >1500 and < 2500
+
+SELECT * FROM emp
+WHERE hiredate LIKE '1980-%'
+AND sal > 1500 
+AND sal < 2500;
+-- Empty set (0.00 sec)
+
+-- list all employees joined in either aug or may or dec
+
+SELECT * FROM emp
+WHERE MONTH(hiredate) in (08,05,12);
+-- +-------+-------+---------+------+------------+---------+------+--------+
+-- | EMPNO | ENAME | JOB     | MGR  | HIREDATE   | SAL     | COMM | DEPTNO |
+-- +-------+-------+---------+------+------------+---------+------+--------+
+-- |  7369 | SMITH | CLERK   | 7902 | 1980-12-17 |  800.00 | NULL |     20 |
+-- |  7698 | BLAKE | MANAGER | 7839 | 1981-05-01 | 2850.00 | NULL |     30 |
+-- |  7788 | SCOTT | ANALYST | 7566 | 1982-12-09 | 3000.00 | NULL |     20 |
+-- |  7900 | JAMES | CLERK   | 7698 | 1981-12-03 |  950.00 | NULL |     30 |
+-- |  7902 | FORD  | ANALYST | 7566 | 1981-12-03 | 3000.00 | NULL |     20 |
+-- +-------+-------+---------+------+------------+---------+------+--------+
+-- 5 rows in set (0.00 sec)
+
+-- display name and hiredate in dd/mm/yy format for all employees whose job 
+-- is clerk and they earn some commission
+
+SELECT 
+    ename AS name, 
+    DATE_FORMAT(hiredate, '%d/%m/%Y') as hiredate,
+    ROUND(sal) as sal
+FROM emp
+WHERE job = 'SALESMAN' 
+AND comm IS NOT NULL;
+-- +--------+------------+------+
+-- | name   | hiredate   | sal  |
+-- +--------+------------+------+
+-- | ALLEN  | 20/02/1981 | 1600 |
+-- | WARD   | 22/02/1981 | 1250 |
+-- | MARTIN | 28/09/1981 | 1250 |
+-- | TURNER | 08/09/1981 | 1500 |
+-- +--------+------------+------+
+-- 4 rows in set (0.00 sec)
+
+
+-- list empcode,empno,name and job for each employee. (note :empcode is 3 
+-- to 5 characters from name and last 2 characters of job)
+
+SELECT
+    empno,
+    ename AS name,
+    LOWER(CONCAT( SUBSTRING(ename,1,4), SUBSTRING(job,-3))) AS empcode
+FROM emp;
+-- +-------+--------+---------+
+-- | empno | name   | empcode |
+-- +-------+--------+---------+
+-- |  7369 | SMITH  | smiterk |
+-- |  7499 | ALLEN  | alleman |
+-- |  7521 | WARD   | wardman |
+-- |  7566 | JONES  | joneger |
+-- |  7654 | MARTIN | martman |
+-- |  7698 | BLAKE  | blakger |
+-- |  7782 | CLARK  | clarger |
+-- |  7788 | SCOTT  | scotyst |
+-- |  7839 | KING   | kingent |
+-- |  7844 | TURNER | turnman |
+-- |  7876 | ADAMS  | adamerk |
+-- |  7900 | JAMES  | jameerk |
+-- |  7902 | FORD   | fordyst |
+-- |  7934 | MILLER | millerk |
+-- +-------+--------+---------+
+-- 14 rows in set (0.00 sec)
+
+-- Display thousand separator and $ symbol for commission if it is null then 
+-- display it as 0 for all employees whose name starts with A and ends with N
+
+SELECT 
+    ename AS name, 
+    CONCAT('$', LPAD(FORMAT(IFNULL(comm, 0), 0),6, ' ')) AS f_comm
+FROM emp
+WHERE ename LIKE 'A%N';
+-- +-------+---------+
+-- | name  | f_comm  |
+-- +-------+---------+
+-- | ALLEN | $   300 |
+-- +-------+---------+
+-- 1 row in set (0.00 sec)
+
+-- Display empid,name,sal,comm,remark Remark should base on following conditions 
+--      comm >= 600 "excellent Keep it up" 
+--      if it < 600 or not null "good" 
+--      otherwise "Need improvement"
+
+SELECT 
+    empno AS empid,
+    ename, 
+    LPAD(CONCAT('$',LPAD(ROUND((sal),0),6,' ')),7,'') AS salary, 
+    ROUND((comm)) AS comm, 
+    (CASE
+        WHEN comm >= 600 THEN "Excellent Keep it up"
+        WHEN comm < 600 AND comm IS NOT NULL AND comm != 0 THEN "Good"
+        ELSE "Need improvement"
+    END) AS remark
+FROM emp;
+-- +-------+--------+---------+------+----------------------+
+-- | empid | ename  | salary  | comm | remark               |
+-- +-------+--------+---------+------+----------------------+
+-- |  7369 | SMITH  | $   800 | NULL | Need improvement     |
+-- |  7499 | ALLEN  | $  1600 |  300 | Good                 |
+-- |  7521 | WARD   | $  1250 |  500 | Good                 |
+-- |  7566 | JONES  | $  2975 | NULL | Need improvement     |
+-- |  7654 | MARTIN | $  1250 | 1400 | Excellent Keep it up |
+-- |  7698 | BLAKE  | $  2850 | NULL | Need improvement     |
+-- |  7782 | CLARK  | $  2450 | NULL | Need improvement     |
+-- |  7788 | SCOTT  | $  3000 | NULL | Need improvement     |
+-- |  7839 | KING   | $  5000 | NULL | Need improvement     |
+-- |  7844 | TURNER | $  1500 |    0 | Need improvement     |
+-- |  7876 | ADAMS  | $  1100 | NULL | Need improvement     |
+-- |  7900 | JAMES  | $   950 | NULL | Need improvement     |
+-- |  7902 | FORD   | $  3000 | NULL | Need improvement     |
+-- |  7934 | MILLER | $  1300 | NULL | Need improvement     |
+-- +-------+--------+---------+------+----------------------+
+-- 14 rows in set (0.00 sec)
+
+-- Display empid, name, deptno and department name by using following conditions. 
+-- dept 10 then "Hr" if 20 then "Admin" if 30 then "accounts" otherwise purchase
+
+SELECT 
+    empno AS empid,
+    ename AS name,
+    deptno,
+    (CASE
+        WHEN deptno = 10 THEN "Hr"
+        WHEN deptno = 20 THEN "Admin"
+        WHEN deptno = 30 THEN "Accounts"
+        ELSE "purchase"
+    END) AS department
+FROM emp
+ORDER BY deptno;
+-- +-------+--------+--------+------------+
+-- | empid | name   | deptno | department |
+-- +-------+--------+--------+------------+
+-- |  7782 | CLARK  |     10 | Hr         |
+-- |  7839 | KING   |     10 | Hr         |
+-- |  7934 | MILLER |     10 | Hr         |
+-- |  7369 | SMITH  |     20 | Admin      |
+-- |  7566 | JONES  |     20 | Admin      |
+-- |  7788 | SCOTT  |     20 | Admin      |
+-- |  7876 | ADAMS  |     20 | Admin      |
+-- |  7902 | FORD   |     20 | Admin      |
+-- |  7499 | ALLEN  |     30 | Accounts   |
+-- |  7521 | WARD   |     30 | Accounts   |
+-- |  7654 | MARTIN |     30 | Accounts   |
+-- |  7698 | BLAKE  |     30 | Accounts   |
+-- |  7844 | TURNER |     30 | Accounts   |
+-- |  7900 | JAMES  |     30 | Accounts   |
+-- +-------+--------+--------+------------+
+-- 14 rows in set (0.00 sec)
+
+
